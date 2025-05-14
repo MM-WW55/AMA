@@ -44,8 +44,6 @@ def get_template(model_name: str):
     model_name = config.MODELPOOL[model_name]
     if "qwen" in model_name:
         return "qwen-7b-chat"
-    # elif "llama3" in model_name:
-    #     return "meta-llama-3.1"
     elif "vicuna" in model_name:
         return "vicuna_v1.1"
     elif "deepseek" in model_name:
