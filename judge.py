@@ -297,8 +297,7 @@ class BaseRater(abc.ABC):
 
 class HarmfulnessRater(BaseRater):
     USER_PROMPT = instructions.harmfulness_judger
-    MODEL_ID = "aihubmix-Llama-3-1-70B-Instruct"
-    # MODEL_ID = "gpt-3.5-turbo-0125"
+    MODEL_ID = "set-your-model"
 
     def __init__(self):
         self._client = OpenAI(api_key=config.OPENAI_API_KEY, base_url=config.OPENAI_API_BASE)  
@@ -352,7 +351,6 @@ class HarmfulnessRater(BaseRater):
 
 class RelevanceRater(BaseRater):
     USER_PROMPT = instructions.relevance_judger
-    # MODEL_ID = "aihubmix-Llama-3-1-70B-Instruct"
     MODEL_ID = "Pro/deepseek-ai/DeepSeek-R1"
 
     def __init__(self):
@@ -454,48 +452,7 @@ def report_category(data, success_indices):
 
     return category_asr
 
-def report_scores(output_file, model, rate_harmfulness=True, rate_relevance=True, rate_asr=True):
-    prompts = []
-    responses = []
-    with open(output_file, 'r', encoding='utf-8') as file:
-        data = json.load(file)
-        for item in data:
-            prompt = item["target"]
-            response = item[model][-1]
-            prompts.append(prompt)
-            responses.append(response)
-
-    success_rate, success_indices = None, None 
-    if rate_asr:
-        classifier = Llama3JailbreakJudge()
-        success_rate, success_indices = evaluate(classifier, prompts, responses)
-        print(f"Llama-3-70B ASR: {success_rate * 100:.2f}%")
-
-        classifier = LlamaGuard3JailbreakJudge()
-        success_rate, success_indices = evaluate(classifier, prompts, responses)
-        print(f"LlamaGuard-3 ASR: {success_rate * 100:.2f}%")
-        # category_asr = report_category(data, success_indices)
-        # print("Category ASR:")
-        # for key in category_asr:
-        #     print(f"{key}: {category_asr[key] * 100:.2f}%")
-
-
-    if rate_harmfulness:
-        harmfulness_rater = HarmfulnessRater()
-        harmfulness_scores = harmfulness_rater.rate_responses(prompts, responses)
-        average_harmfulness_score = calculate_average_score(harmfulness_scores)
-        print(f"Average Harmfulness Score: {average_harmfulness_score:.2f}")
-
-    if rate_relevance:
-        classifier = LlamaGuard3JailbreakJudge()
-        _, success_indices = evaluate(classifier, prompts, responses)
-        relevance_rater = RelevanceRater()
-        relevance_scores = relevance_rater.rate_responses(prompts, responses)
-        average_relevance_score = calculate_average_score(relevance_scores, success_indices)
-        print(f'Model Response: {model}')
-        print(f"Average Relevance Score: {average_relevance_score:.2f}")
-
-def report_coa_scores(output_file, rate_harmfulness=True, rate_relevance=True, rate_asr=True):
+def report_scores(output_file, rate_harmfulness=True, rate_relevance=True, rate_asr=True):
     prompts = []
     responses = []
     with open(output_file, 'r', encoding='utf-8') as file:
@@ -537,40 +494,9 @@ def report_coa_scores(output_file, rate_harmfulness=True, rate_relevance=True, r
         average_relevance_score = calculate_average_score(relevance_scores, success_indices)
         print(f"Average Relevance Score: {average_relevance_score:.2f}")
 
-def report_jsonl_scores(output_file):
-    prompts = []
-    responses = []
-    with open(output_file, 'r', encoding='utf-8') as file:
-        lines = file.readlines()
-        for line in lines:
-            item = json.loads(line)
-            prompt = item["input"]
-            response = item["output"]
-            prompts.append(prompt)
-            responses.append(response)
-
-    harmfulness_rater = HarmfulnessRater()
-    # relevance_rater = RelevanceRater()
-
-    harmfulness_scores = harmfulness_rater.rate_responses(prompts, responses)
-    # relevance_scores = relevance_rater.rate_responses(prompts, responses)
-
-    average_harmfulness_score = calculate_average_score(harmfulness_scores)
-    # average_relevance_score = calculate_average_score(relevance_scores)
-
-    print(f"Average Harmfulness Score: {average_harmfulness_score:.2f}")
-    # print(f"Average Relevance Score: {average_relevance_score:.2f}")
-
         
 if __name__ == "__main__":
-    # report_scores("results/ACA/JBB/jbb_responses.json", "llama3.1_70b_response", rate_harmfulness=False, rate_relevance=False)
-    # report_coa_scores("/root/src/results/TAP/advbench/vicuna/vTAP-gpr-4o-mini.json", rate_harmfulness=False, rate_relevance=False, rate_asr=True)
-    # report_jsonl_scores("/root/src/results/gpt3.5_answer.jsonl")
 
-    result_file = "results/ACA/advbench_gpt4o/deepseek.json"
+    result_file = ""
     print(">"*10,result_file,"<"*10)
-    report_coa_scores(result_file, rate_harmfulness=False, rate_relevance=False, rate_asr=True)
-
-    # classifier = LlamaGuard3JailbreakJudge()
-    # # report_coa_scores("results/ACA/advbench/gpt-4o-mini.json", classifier, rate_harmfulness=False, rate_relevance=True, rate_asr=False)
-    # report_coa_scores("results/ACA/advbench/gpt-3.5-no-entropy.json", classifier, rate_harmfulness=False, rate_relevance=False, rate_asr=True)
+    report_scores(result_file, rate_harmfulness=False, rate_relevance=False, rate_asr=True)
