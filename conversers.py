@@ -6,11 +6,11 @@ import config
 from config import ATTACK_TEMP, TARGET_TEMP, ATTACK_TOP_P, TARGET_TOP_P
 from collections import defaultdict
 import instructions
+from instructions import get_attack_optimization_prompt, get_context_optimization_prompt
 from langchain_core.prompts import PromptTemplate
 from utils import get_template, extract_json
 from conversation import get_conv_template
 from language_models import GPT, CommercialAPI
-from system_prompts import get_attack_optimization_prompt, get_context_optimization_prompt
 from language_models import LMDeploy
 
 
